@@ -3,14 +3,13 @@ from django.db.models import Q
 from .models import Channel
 
 
-class ProductFilter(filters.FilterSet):
-    # name = django_filters.CharFilter(lookup_expr='iexact')
-    # all_groups contains both parents and childs groups
-    # all_groups = CharFilter(method='groups_filter')
+class ChannelFilter(filters.FilterSet):
+    # groups contains both parents and childs groups
+    group_name = filters.CharFilter(method='filter_group_name')
 
     class Meta:
         model = Channel
-        fields = ['title', 'groups']
+        fields = ['group_name']
 
-    # def groups_filter(self, queryset, name, value):
-    #     return queryset.filter(Q(groups__icontains=value) | Q(subchannels__iexact=value))
+    def filter_group_name(self, queryset, name, value):
+        return queryset.filter(Q(groups__name__icontains=value) | Q(subchannels__groups__name__icontains=value))

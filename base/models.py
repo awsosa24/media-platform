@@ -1,13 +1,11 @@
 from django.db import models
-from django.db.models import Q, Avg
+from django.db.models import Avg
+from django.core.validators import MaxValueValidator, MinValueValidator
 from .constants import OTHER, FILE_GENRE_CHOICES
 
 
 class Content(models.Model):
     name = models.CharField(max_length=32)
-    # file: can contain files (such as videos, pdfs, or text
-    # TODO Puede contener mas de un archivo. FK a content.
-    file = models.FileField(upload_to='files')
 
     # metadata: a set of arbitrary metadata associated with the content
     description = models.CharField(max_length=32, blank=True, null=True)
@@ -19,12 +17,27 @@ class Content(models.Model):
     )
 
     # rating: decimal number between 0 and 10
-    rating = models.DecimalField(blank=True, null=True, max_digits=4, decimal_places=2)
+    rating = models.DecimalField(
+        blank=True, null=True,
+        max_digits=4, decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(10)]
+    )
 
     def __str__(self):
         _return = self.name+'|'
         if self.rating:
             _return += str(self.rating)
+        return _return
+
+
+class ContentFile(models.Model):
+    name = models.CharField(max_length=32, blank=True, null=True)
+    file = models.FileField(upload_to='files')
+    # file: can contain files (such as videos, pdfs, or text)
+    content = models.ForeignKey(Content, blank=True, null=True, related_name="files", on_delete=models.CASCADE)
+
+    def __str__(self):
+        _return = str(self.name)
         return _return
 
 
@@ -57,9 +70,9 @@ class Channel(models.Model):
         undefined.
 
         If the structure of subchannels has a depth greater than 2, this solution would need a refactor.
-        For example, we may need to use a query and prefetch_related to subchannels, in order to iterate
-        and reduce db queries or if we have too many channels we may need another solution (maybe using
-        Redis?)
+        For example, I'd most likely use a query with prefetch_related to subchannels (reduce db queries),
+         in order to iterate and get ratings for each channel. I'd consider using Redis to temporarily  store ratings,
+         in case we have too many channels.
         """
         channels = Channel.objects.all()
 
@@ -88,3 +101,8 @@ class Channel(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ChannelGroup(models.Model):
+    name = models.CharField(max_length=32, blank=True, null=True)
+    channels = models.ManyToManyField(Channel, blank=True, related_name='groups')

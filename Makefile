@@ -2,7 +2,7 @@ PROJECT = media-platform
 
 
 test-execution:
-	mkdir -p x/static x/media
+	mkdir -p test/static test/media
 	python manage.py migrate
 	pytest -v
 

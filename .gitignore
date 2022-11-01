@@ -65,6 +65,7 @@ media
 .idea/**/shelf
 
 # Custom
+*.csv
 htmlcov/
 media/
 coverage/

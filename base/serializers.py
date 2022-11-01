@@ -1,8 +1,28 @@
 from rest_framework import serializers
-from .models import Channel, Content
+from .models import Channel, Content, ContentFile, ChannelGroup
+
+
+class ChannelGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChannelGroup
+        fields = [
+            'id',
+            'name',
+        ]
+
+
+class ContentFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContentFile
+        fields = [
+            'id',
+            'name',
+            'file',
+        ]
 
 
 class ContentSerializer(serializers.ModelSerializer):
+    files = ContentFileSerializer(many=True)
     class Meta:
         model = Content
         fields = [
@@ -12,7 +32,7 @@ class ContentSerializer(serializers.ModelSerializer):
             'author',
             'genre',
             'rating',
-            'file',
+            'files',
         ]
 
 
@@ -42,6 +62,7 @@ class ChannelSerializer(serializers.ModelSerializer):
     contents = ContentLittleSerializer(many=True)
     subchannels = SubChannelSerializer(many=True)
     avg_rating = serializers.ReadOnlyField()
+    groups = ChannelGroupSerializer(many=True)
 
     class Meta:
         model = Channel
@@ -53,4 +74,5 @@ class ChannelSerializer(serializers.ModelSerializer):
             'subchannels',
             'contents',
             'avg_rating',
+            'groups',
         ]
